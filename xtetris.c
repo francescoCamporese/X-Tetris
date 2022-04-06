@@ -238,7 +238,6 @@ void print_field(int field[ROWS][COLUMNS]) /*stampa il campo da gioco*/
 {
 	int i, j;
 
-	clear();
 	printf("\nFIELD\n\n");
 
 	for (i = 0; i < ROWS; ++i)
@@ -310,8 +309,9 @@ int update_field_and_points(int field[ROWS][COLUMNS]) /*aggiorna il punteggio e 
 	return add_points;
 }
 
-void end_match_prints(int field[ROWS][COLUMNS], int total_points, int has_won) /*stampa il risultato finale ed il relativo punteggio*/
+void end_match_prints_sp(int field[ROWS][COLUMNS], int total_points, int has_won) /*stampa il risultato finale ed il relativo punteggio*/
 {
+	clear();
 	print_field(field);
 
 	if (has_won == 1)
@@ -320,6 +320,13 @@ void end_match_prints(int field[ROWS][COLUMNS], int total_points, int has_won) /
 		printf("\nYOU LOST ");
 
 	printf("POINTS: %d\n\n", total_points);
+	make_pause();
+}
+
+void end_match_prints_mp(int total_points1, int total_points2) /*stampa il risultato finale ed i relativi punteggi*/
+{
+	//TODO implementare secondo le casistiche
+	printf("PLAYER 1 POINTS: %d\nPLAYER 2 POINTS:%d\n\n", total_points1, total_points2);	
 	make_pause();
 }
 
@@ -392,13 +399,16 @@ int try_to_place(int field[ROWS][COLUMNS], t_tetromino tetromat[NROFTETROMINOS][
 	return retval;
 }
 
-int make_move(int field[ROWS][COLUMNS], t_tetromino tetromat[NROFTETROMINOS][FOUR], int tetrominos[NROFTETROMINOS]) /*restituisce 0 se ho posizionato il tetramino o fatto mossa nulla, -1 se ho perso (ovvero se il tetramino non ci sta in altezza)*/
+int make_move(int field[ROWS][COLUMNS], t_tetromino tetromat[NROFTETROMINOS][FOUR], int tetrominos[NROFTETROMINOS], int playernr) /*restituisce 0 se ho posizionato il tetramino o fatto mossa nulla, -1 se ho perso (ovvero se il tetramino non ci sta in altezza)*/
 {
 	int tetronumber;
 	int tetrorot;
 	int tetrocol;
 	int res;
 
+	clear();
+	if (playernr != 0)
+		printf("\nPLAYER %d TURN\n", playernr);
 	print_field(field);
 	print_tetromat(tetromat, tetrominos);
 
@@ -434,15 +444,16 @@ int make_move(int field[ROWS][COLUMNS], t_tetromino tetromat[NROFTETROMINOS][FOU
 	return 0;
 }
 
-void init_match_values(int field[ROWS][COLUMNS], int tetrominos[NROFTETROMINOS], int* total_points, int* status) /*inizializza campo, punteggio e stato del gioco per un singolo partecipante*/
+void init_match_values(int field[ROWS][COLUMNS], int tetrominos[NROFTETROMINOS], int* total_points, int* status, int piecesnr) /*inizializza campo, punteggio e stato del gioco per un singolo partecipante*/
 {
 	int i, j;
 
 	for (i = 0; i < ROWS; ++i)
 		for (j = 0; j < COLUMNS; ++j)
 			field[i][j] = 0;
-	for (i = 0; i < NROFTETROMINOS; ++i)
-		tetrominos[i] = PIECES;
+	if (tetrominos != NULL)
+		for (i = 0; i < NROFTETROMINOS; ++i)
+			tetrominos[i] = piecesnr;
 
 	*total_points = 0;
 	*status = 0;
@@ -457,28 +468,77 @@ void singleplayer() /*partita con un singolo giocatore*/
 	t_tetromino tetromat[NROFTETROMINOS][FOUR];
 	
 	init_tetromat(tetromat);
-	init_match_values(field, tetrominos, &total_points, &status);
+	init_match_values(field, tetrominos, &total_points, &status, PIECES);
 
 	while (status == 0)
 	{
 		if (is_game_finished_qty(tetrominos))
 			status = 1;
 		else
-			status = make_move(field, tetromat, tetrominos);
+			status = make_move(field, tetromat, tetrominos, 0);
 		total_points += update_field_and_points(field);
 	}
 
-	end_match_prints(field, total_points, status);
+	end_match_prints_sp(field, total_points, status);
 }
 
 void multiplayer() /*partita contro un altro giocatore*/
 {
-	/*il multiplayer deve mostrare entrambi i campi da gioco e chiedere a turno che mossa fare (simile alla funzione del primo giocatore)*/
+	/*
+	due giocatori giocano a turni alterni ciascuno nel proprio campo di gioco
+	ma pescando dallo stesso insieme di tetramini (si avranno il doppio di pezzi a disposizione).
+	
+	//TODO:
+	Nel caso in cui un giocatore cancelli una o due linee simultaneamente,
+	il gioco procede come per il caso single player. Nel caso il giocatore cancelli 3 o
+	più linee con una singola mossa, il campo dell’avversario viene modificato invertendo il corrispondente
+	numero di linee nella parte più bassa del campo di gioco: una posizione vuota diventa piena e viceversa.
+	Un giocatore perde la partita se non posiziona correttamente un pezzo nel proprio campo di gioco.
+	Se i pezzi finiscono, vince il giocatore con il punteggio più alto.
+	*/
+	t_tetromino tetromat[NROFTETROMINOS][FOUR];
+	int field1[ROWS][COLUMNS];
+	int field2[ROWS][COLUMNS];
+	int tetrominos[NROFTETROMINOS];
+	int total_points1;
+	int total_points2;
+	int status; //TODO come lo gestisco?
+	int playernr = 1;
+	
+	init_tetromat(tetromat);
+	init_match_values(field1, tetrominos, &total_points1, &status, PIECES * 2);
+	init_match_values(field2, NULL, &total_points2, &status, PIECES * 2);
+
+	while (status == 0)
+	{
+		if (is_game_finished_qty(tetrominos))
+			status = 1;
+		else
+		{
+			if (playernr == 1)
+				status = make_move(field1, tetromat, tetrominos, 1);
+			else
+				status = make_move(field2, tetromat, tetrominos, 2);
+			
+		}
+		if (playernr == 1)
+		{
+			total_points1 += update_field_and_points(field1);
+			playernr = 2;
+		}
+		else
+		{
+			total_points2 += update_field_and_points(field2);
+			playernr = 1;
+		}
+	}
+
+	end_match_prints_mp(total_points1, total_points2);
 }
 
 void ai() /*partita contro computer*/
 {
-	/*plus: implementare possibilita di giocare anche contro un computer*/
+	//TODO implementare possibilita di giocare anche contro un computer
 }
 
 void print_game_menu() /*stampa menu*/
