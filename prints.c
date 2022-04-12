@@ -87,7 +87,7 @@ void end_match_prints_sp(int field[ROWS][COLUMNS], int total_points, int has_won
 void end_match_prints_mp(int total_points1, int total_points2) /*stampa il risultato finale ed i relativi punteggi*/
 {
 	//TODO implementare secondo le casistiche
-	printf("PLAYER 1 POINTS: %d\nPLAYER 2 POINTS:%d\n\n", total_points1, total_points2);	
+	printf("PLAYER 1 POINTS: %d\nPLAYER 2 POINTS: %d\n\n", total_points1, total_points2);	
 	make_pause();
 }
 
@@ -96,8 +96,9 @@ void print_game_menu() /*stampa menu*/
 	clear();
 	printf("X-TETRIS:\n");
 	printf("1 Single player\n");
-	printf("2 Two players\n");
-	printf("3 Play versus the computer\n");
+	//TODO togliere testo con parentesi quadre nei seguenti due quando completato
+	printf("2 Two players [NOT YET FINISHED]\n");
+	printf("3 Play versus the computer [NOT YET IMPLEMENTED]\n");
 	printf("0 Exit\n");
 	printf("Choose: ");
 }

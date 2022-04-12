@@ -1,6 +1,19 @@
 #include "head.h"
 
-//TODO: trovare alternativa agli scanf in make_move() e switch_menu(): i messaggi compaiono tutti in una riga se inserisco più valori senza premere invio. Se inserisco caratteri che non sono numeri parte un ciclo che ristampa tutto continuamente e con i messaggi in fila quindi non si riesce nemmeno a dare altri valori. Accade sia in gioco che nel menu
+void save_digit_into(int* save_into) /*salva nell'area puntata da save_into il valore intero ottenuto dall'utente, -1 altrimenti*/
+{
+	char buf[BUFSIZE];
+	char *p;
+	
+	if (fgets(buf, sizeof(buf), stdin) != NULL)
+	{
+		*save_into = strtol(buf, &p, 10);
+		if (!(buf[0] != '\n' && (*p == '\n' || *p == '\0')))
+			*save_into = -1;
+	}
+	else
+		*save_into = -1;
+}
 
 int is_row_full(int field[ROWS][COLUMNS], int row) /*dice se la riga row-esima e piena*/
 {
@@ -131,9 +144,9 @@ int try_to_place(int field[ROWS][COLUMNS], t_tetromino tetromat[NROFTETROMINOS][
 
 int make_move(int field[ROWS][COLUMNS], t_tetromino tetromat[NROFTETROMINOS][FOUR], int tetrominos[NROFTETROMINOS], int playernr) /*restituisce 0 se ho posizionato il tetramino o fatto mossa nulla, -1 se ho perso (ovvero se il tetramino non ci sta in altezza)*/
 {
-	int tetronumber;
-	int tetrorot;
-	int tetrocol;
+	int tetronumber = -1;
+	int tetrorot = -1;
+	int tetrocol = -1;
 	int res;
 
 	clear();
@@ -142,10 +155,17 @@ int make_move(int field[ROWS][COLUMNS], t_tetromino tetromat[NROFTETROMINOS][FOU
 	print_field(field);
 	print_tetromat(tetromat, tetrominos);
 
-	printf("Type of tetromino to use (0-6):");
-	scanf("%d", &tetronumber);
-	printf("Choose a rotation (0-depends from the selected tetromino):");
-	scanf("%d", &tetrorot);
+	do
+	{
+		printf("Type of tetromino to use (0-6):");
+		save_digit_into(&tetronumber);
+	} while (tetronumber == -1);
+
+	do
+	{
+		printf("Choose a rotation (0-depends from the selected tetromino):");
+		save_digit_into(&tetrorot);
+	} while (tetrorot == -1);
 
 	if (tetronumber < 0 || tetronumber >= NROFTETROMINOS || tetrorot < 0 || tetrorot >= 4 || tetrominos[tetronumber] == 0 || (tetromat[tetronumber][tetrorot]).exists == 0) /*faccio il controllo sugli input e se ho finito i tetramini del tipo scelto oppure non esiste la rotazione indicata allora richiedo tutto*/
 	{
@@ -154,8 +174,11 @@ int make_move(int field[ROWS][COLUMNS], t_tetromino tetromat[NROFTETROMINOS][FOU
 	}
 	else
 	{
-		printf("Further left column of the tetromino to place(0-%d): ", COLUMNS - 1);
-		scanf("%d", &tetrocol);
+		do
+		{
+			printf("Further left column of the tetromino to place(0-%d): ", COLUMNS - 1);
+			save_digit_into(&tetrocol);
+		} while (tetrocol == -1);
 		res = try_to_place(field, tetromat, tetronumber, tetrorot, tetrocol);
 
 		if (res == 0)
@@ -258,10 +281,13 @@ void ai() /*partita contro computer*/
 
 void switch_menu(int* ahead) /*menu principale*/
 {
-	int chosen;
+	int chosen = -1;
 
-	print_game_menu();
-	scanf("%d", &chosen);
+	do
+	{
+		print_game_menu();
+		save_digit_into(&chosen);
+	} while (chosen == -1);
 	*ahead = chosen;
 
 	switch (chosen)

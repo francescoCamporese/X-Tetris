@@ -21,6 +21,7 @@ const int COLUMNS; /*larghezza campo*/
 const int NROFTETROMINOS; /*numero di tipi di tetramini*/
 const int PIECES; /*quantita disponibile di ciascun tipo di tetramino*/
 const int FOUR;
+const int BUFSIZE;
 
 typedef struct s_tetromino /*rappresentazione di un tetramino*/
 {
@@ -36,6 +37,7 @@ void init_tetromat(t_tetromino tetromat[NROFTETROMINOS][FOUR]); /*inizializza la
 void print_tetromino(t_tetromino* t); /*stampa un tetramino ruotato in uno dei modi per lui disponibili*/
 void print_tetromat(t_tetromino tetromat[NROFTETROMINOS][FOUR], int tetrominos[NROFTETROMINOS]); /*stampa tutti i tetramini esistenti con le relative rotazioni per loro disponibili*/
 void print_field(int field[ROWS][COLUMNS]); /*stampa il campo da gioco*/
+void save_digit_into(int* save_into); /*salva nell'area puntata da save_into il valore intero ottenuto dall'utente, -1 altrimenti*/
 int is_row_full(int field[ROWS][COLUMNS], int row); /*dice se la riga row-esima e piena*/
 void shift_from_row(int field[ROWS][COLUMNS], int row); /*sposta dalla riga row-esima in su, verso giu di una riga*/
 int update_field_and_points(int field[ROWS][COLUMNS]); /*aggiorna il punteggio e la tabella in base alle righe piene*/

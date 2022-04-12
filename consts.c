@@ -7,3 +7,4 @@ const int COLUMNS = 10; /*larghezza campo*/
 const int NROFTETROMINOS = 7; /*numero di tipi di tetramini*/
 const int PIECES = 20; /*quantita disponibile di ciascun tipo di tetramino*/
 const int FOUR = 4;
+const int BUFSIZE = 1024;
